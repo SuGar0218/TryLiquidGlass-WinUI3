@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TryLiquidGlass (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "TryLiquidGlass (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:TryLiquidGlass.Controls"
+	xmlns:win2d="using:Microsoft.Graphics.Canvas.UI.Xaml">
+
+	<x:Double x:Key="LiquidGlassBorderThickness">1</x:Double>
+
+	<LinearGradientBrush x:Key="LiquidGlassBorderBrush" MappingMode="RelativeToBoundingBox">
+		<LinearGradientBrush.GradientStops>
+			<GradientStopCollection>
+				<GradientStop Offset="0.0" Color="#80FFFFFF" />
+				<GradientStop Offset="0.5" Color="#80000000" />
+				<GradientStop Offset="1.0" Color="#80FFFFFF" />
+			</GradientStopCollection>
+		</LinearGradientBrush.GradientStops>
+	</LinearGradientBrush>
+
+	<Style TargetType="local:LiquidGlassBackground">
+		<Setter Property="BorderThickness" Value="{StaticResource LiquidGlassBorderThickness}" />
+		<Setter Property="BorderBrush" Value="{StaticResource LiquidGlassBorderBrush}" />
+		<Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="local:LiquidGlassBackground">
+					<Border
+						Background="{TemplateBinding Background}"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"
+						CornerRadius="{TemplateBinding CornerRadius}">
+						<win2d:CanvasControl x:Name="PART_CanvasControl" />
+					</Border>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+</ResourceDictionary>
