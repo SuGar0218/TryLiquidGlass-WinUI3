@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
 
 using Windows.Foundation;
@@ -24,7 +25,6 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         DefaultStyleKey = typeof(LiquidGlassBackground);
         SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
-        LayoutUpdated += OnLayoutUpdated;
     }
 
     public double Thickness
@@ -82,8 +82,8 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     private CanvasRenderTarget? _displacementMap;
     private bool _isDisplacementMapValid;
 
-    private RenderTargetBitmap? _backdropBitmap;
-    private IBuffer? _backdropBitmapPixels;
+    private readonly RenderTargetBitmap _backdropRenderTargetBitmap = new();
+    private CanvasBitmap? _backdropBitmap;
     private bool _isBackdropBitmapValid;
 
     protected override void OnApplyTemplate()
@@ -98,7 +98,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(() => _ = UpdateLiquidGlassAsync());
+        DispatcherQueue.TryEnqueue(async () => await UpdateLiquidGlassAsync());
     }
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -108,23 +108,16 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
     private void OnLayoutUpdated(object? sender, object e)
     {
-        DispatcherQueue.TryEnqueue(() => _ = UpdateLiquidGlassAsync());
+        DispatcherQueue.TryEnqueue(async () => await UpdateLiquidGlassAsync());
         LayoutUpdated -= OnLayoutUpdated;
-    }
-
-    private async Task<bool> UpdateBackdropImage()
-    {
-        if (!IsLoaded || BackgroundSource is null)
-            return false;
-
-        _backdropBitmap ??= new RenderTargetBitmap();
-        await _backdropBitmap.RenderAsync(BackgroundSource);
-        _backdropBitmapPixels = await _backdropBitmap.GetPixelsAsync();
-        return _backdropBitmap.PixelWidth > 0 && _backdropBitmap.PixelHeight > 0;
     }
 
     public async Task UpdateLiquidGlassAsync()
     {
+        if (_isUpdatingLiquidGlass)
+            return;
+
+        _isUpdatingLiquidGlass = true;
         if (!_isBackdropBitmapValid)
         {
             _isBackdropBitmapValid = await UpdateBackdropImage();
@@ -133,7 +126,35 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         {
             _isDisplacementMapValid = UpdateDisplacementMap();
         }
-        PART_CanvasControl?.Invalidate();
+        if (_isBackdropBitmapValid && _isDisplacementMapValid)
+        {
+            PART_CanvasControl?.Invalidate();
+        }
+        _isUpdatingLiquidGlass = false;
+    }
+
+    private bool _isUpdatingLiquidGlass;
+
+    private async Task<bool> UpdateBackdropImage()
+    {
+        if (!IsLoaded || BackgroundSource is null || PART_CanvasControl is null)
+            return false;
+
+        await _backdropRenderTargetBitmap.RenderAsync(BackgroundSource);
+        IBuffer pixelBuffer = await _backdropRenderTargetBitmap.GetPixelsAsync();
+        byte[] pixelBytes = new byte[pixelBuffer.Length];
+        using (DataReader dataReader = DataReader.FromBuffer(pixelBuffer))
+        {
+            dataReader.ReadBytes(pixelBytes);
+        }
+        _backdropBitmap = CanvasBitmap.CreateFromBytes(
+            PART_CanvasControl,
+            pixelBytes,
+            _backdropRenderTargetBitmap!.PixelWidth,
+            _backdropRenderTargetBitmap!.PixelHeight,
+            DirectXPixelFormat.B8G8R8A8UIntNormalized,
+            (float)(XamlRoot.RasterizationScale * 96));
+        return _backdropRenderTargetBitmap.PixelWidth > 0 && _backdropRenderTargetBitmap.PixelHeight > 0;
     }
 
     private bool UpdateDisplacementMap()
@@ -156,55 +177,54 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         return pixelWidth > 0 && pixelHeight > 0;
     }
 
+    private readonly AtlasEffect _atlasEffect = new();
+    private readonly DisplacementMapEffect _displacementMapEffect = new();
+    private readonly GaussianBlurEffect _gaussianBlurEffect = new();
+
     private async void OnDraw(CanvasControl sender, CanvasDrawEventArgs args)
     {
-        CanvasBitmap? backdrop = CanvasBitmapFromRenderTargetBitmap(sender);
-        if (backdrop is null || backdrop.Size.Width == 0 && backdrop.Size.Height == 0)
+        if (_backdropBitmap is null || _backdropBitmap.Size.Width == 0 && _backdropBitmap.Size.Height == 0)
             return;
 
         if (_displacementMap is null)
             return;
 
         Point position = TransformToVisual(BackgroundSource).TransformPoint(new Point(0, 0));
-        AtlasEffect atlasEffect = new()
+        Rect backdropClipRect = new(new Point(position.X, position.Y), RenderSize);
+        Vector2 drawingOffset = new(0, 0);
+        if (position.X < 0)
         {
-            Source = backdrop,
-            SourceRectangle = new Rect(new Point(position.X, position.Y), RenderSize)
-        };
-        DisplacementMapEffect displacementMapEffect = new()
-        {
-            Source = atlasEffect,
-            Displacement = _displacementMap,
-            XChannelSelect = EffectChannelSelect.Red,
-            YChannelSelect = EffectChannelSelect.Green,
-            Amount = Math.Min(_displacementMap.SizeInPixels.Width, _displacementMap.SizeInPixels.Height)
-        };
-        GaussianBlurEffect gaussianBlurEffect = new()
-        {
-            Source = displacementMapEffect,
-            BlurAmount = 2.0f
-        };
-        using CanvasDrawingSession drawingSession = args.DrawingSession;
-        drawingSession.DrawImage(gaussianBlurEffect);
-    }
-
-    private CanvasBitmap? CanvasBitmapFromRenderTargetBitmap(ICanvasResourceCreator canvasResourceCreator)
-    {
-        if (_backdropBitmapPixels is null)
-            return null;
-
-        byte[] pixelBytes = new byte[_backdropBitmapPixels.Length];
-        using (DataReader dataReader = DataReader.FromBuffer(_backdropBitmapPixels))
-        {
-            dataReader.ReadBytes(pixelBytes);
+            backdropClipRect.X = 0;
+            backdropClipRect.Width = Math.Max(0, backdropClipRect.Width + position.X);
+            drawingOffset.X = (float)-position.X;
         }
-        return CanvasBitmap.CreateFromBytes(
-            canvasResourceCreator,
-            pixelBytes,
-            _backdropBitmap!.PixelWidth,
-            _backdropBitmap!.PixelHeight,
-            DirectXPixelFormat.B8G8R8A8UIntNormalized,
-            (float)(XamlRoot.RasterizationScale * 96));
+        if (position.Y < 0)
+        {
+            backdropClipRect.Y = 0;
+            backdropClipRect.Height = Math.Max(0, backdropClipRect.Height + position.Y);
+            drawingOffset.Y = (float)-position.Y;
+        }
+
+        _atlasEffect.Source = _backdropBitmap;
+        _atlasEffect.SourceRectangle = backdropClipRect;
+
+        CanvasCommandList atlasOffsetCommandList = new(PART_CanvasControl);
+        using (CanvasDrawingSession session = atlasOffsetCommandList.CreateDrawingSession())
+        {
+            session.DrawImage(_atlasEffect, drawingOffset);
+        }
+
+        _displacementMapEffect.Source = atlasOffsetCommandList;
+        _displacementMapEffect.Displacement = _displacementMap;
+        _displacementMapEffect.XChannelSelect = EffectChannelSelect.Red;
+        _displacementMapEffect.YChannelSelect = EffectChannelSelect.Green;
+        _displacementMapEffect.Amount = Math.Min(_displacementMap.SizeInPixels.Width, _displacementMap.SizeInPixels.Height);
+
+        _gaussianBlurEffect.Source = _displacementMapEffect;
+        _gaussianBlurEffect.BlurAmount = 2.0f;
+
+        using CanvasDrawingSession drawingSession = args.DrawingSession;
+        drawingSession.DrawImage(_gaussianBlurEffect);
     }
 
     private static Color[] BuildDisplacementPixels(int width, int height, int thickness, int[] cornerRadius)
