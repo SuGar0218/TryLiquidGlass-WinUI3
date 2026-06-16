@@ -23,7 +23,7 @@ public sealed partial class MainWindow : Window
         PART_LiquidGlassSample.CapturePointer(e.Pointer);
     }
 
-    private void LiquidGlassContentControl_PointerMoved(object sender, PointerRoutedEventArgs e)
+    private async void LiquidGlassContentControl_PointerMoved(object sender, PointerRoutedEventArgs e)
     {
         if (!_isPointerPressed)
             return;
@@ -31,7 +31,6 @@ public sealed partial class MainWindow : Window
         Point currentPosition = e.GetCurrentPoint(PART_RootGrid).Position;
         Canvas.SetLeft(PART_LiquidGlassSample, Canvas.GetLeft(PART_LiquidGlassSample) + currentPosition.X - _previousPosition.X);
         Canvas.SetTop(PART_LiquidGlassSample, Canvas.GetTop(PART_LiquidGlassSample) + currentPosition.Y - _previousPosition.Y);
-        _ = PART_LiquidGlassSample.UpdateLiquidGlassAsync();
         _previousPosition = currentPosition;
     }
 

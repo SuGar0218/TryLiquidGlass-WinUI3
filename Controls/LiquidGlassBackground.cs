@@ -3,6 +3,7 @@ using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using System;
@@ -23,8 +24,9 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     public LiquidGlassBackground()
     {
         DefaultStyleKey = typeof(LiquidGlassBackground);
-        SizeChanged += OnSizeChanged;
         Loaded += OnLoaded;
+        SizeChanged += OnSizeChanged;
+        CompositionTarget.Rendered += OnCompositionTargetRendered;
     }
 
     public double Thickness
@@ -71,10 +73,10 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         }
     }
 
-    private void OnBackgroundSourceSizeChanged(object sender, SizeChangedEventArgs e)
+    private async void OnBackgroundSourceSizeChanged(object sender, SizeChangedEventArgs e)
     {
         _isBackdropBitmapValid = false;
-        _ = UpdateLiquidGlassAsync();
+        await UpdateLiquidGlassAsync();
     }
 
     private CanvasControl? PART_CanvasControl;
@@ -106,10 +108,16 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         _isDisplacementMapValid = false;
     }
 
-    private void OnLayoutUpdated(object? sender, object e)
+    private Point _positionToBackgroundSource;
+
+    private async void OnCompositionTargetRendered(object? sender, RenderedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(async () => await UpdateLiquidGlassAsync());
-        LayoutUpdated -= OnLayoutUpdated;
+        Point position = TransformToVisual(BackgroundSource).TransformPoint(new Point(0, 0));
+        if (position == _positionToBackgroundSource)
+            return;
+
+        _positionToBackgroundSource = position;
+        await UpdateLiquidGlassAsync();
     }
 
     public async Task UpdateLiquidGlassAsync()
