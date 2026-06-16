@@ -17,7 +17,7 @@
 	<Grid x:Name="PART_RootGrid">
 		<Image
 			x:Name="PART_Wallpaper"
-			Source="D:\Pictures\壁纸\OS 26 Liquid Glass Sample.jpg"
+			Source="/Assets/OS 26 Liquid Glass Sample.jpg"
 			Stretch="UniformToFill" />
 		<Canvas>
 			<controls:LiquidGlassContentControl
