@@ -42,9 +42,10 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         new PropertyMetadata(default(double), (d, e) => ((LiquidGlassBackground)d).OnThicknessChanged(e))
     );
 
-    private void OnThicknessChanged(DependencyPropertyChangedEventArgs e)
+    private async void OnThicknessChanged(DependencyPropertyChangedEventArgs e)
     {
         _isDisplacementMapValid = false;
+        await UpdateLiquidGlassAsync();
     }
 
     public UIElement BackgroundSource
@@ -103,9 +104,10 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         DispatcherQueue.TryEnqueue(async () => await UpdateLiquidGlassAsync());
     }
 
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    private async void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         _isDisplacementMapValid = false;
+        await UpdateLiquidGlassAsync();
     }
 
     private Point _positionToBackgroundSource;
@@ -167,7 +169,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
     private bool UpdateDisplacementMap()
     {
-        if (PART_CanvasControl is null)
+        if (!IsLoaded || PART_CanvasControl is null)
             return false;
 
         _displacementMap ??= new CanvasRenderTarget(PART_CanvasControl, RenderSize);

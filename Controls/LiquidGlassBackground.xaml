@@ -7,12 +7,13 @@
 
 	<x:Double x:Key="LiquidGlassBorderThickness">1</x:Double>
 
-	<LinearGradientBrush x:Key="LiquidGlassBorderBrush" MappingMode="RelativeToBoundingBox">
+	<LinearGradientBrush x:Key="LiquidGlassBorderBrush" MappingMode="RelativeToBoundingBox" StartPoint="0,0" EndPoint="0,1">
 		<LinearGradientBrush.GradientStops>
 			<GradientStopCollection>
-				<GradientStop Offset="0.0" Color="#80FFFFFF" />
-				<GradientStop Offset="0.5" Color="#80000000" />
-				<GradientStop Offset="1.0" Color="#80FFFFFF" />
+				<GradientStop Offset="0.0" Color="#40FFFFFF" />
+				<GradientStop Offset="0.2" Color="#40000000" />
+				<GradientStop Offset="0.8" Color="#40000000" />
+				<GradientStop Offset="1.0" Color="#40FFFFFF" />
 			</GradientStopCollection>
 		</LinearGradientBrush.GradientStops>
 	</LinearGradientBrush>

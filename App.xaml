@@ -3,7 +3,8 @@
 	x:Class="TryLiquidGlass.App"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:local="using:TryLiquidGlass">
+	xmlns:local="using:TryLiquidGlass"
+	RequestedTheme="Dark">
 	<Application.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>

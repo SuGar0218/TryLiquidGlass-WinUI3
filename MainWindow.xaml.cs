@@ -11,6 +11,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         ExtendsContentIntoTitleBar = true;
+        AppWindow.TitleBar.PreferredTheme = Microsoft.UI.Windowing.TitleBarTheme.Dark;
         InitializeComponent();
     }
 

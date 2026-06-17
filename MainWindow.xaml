@@ -22,20 +22,36 @@
 		<Canvas>
 			<controls:LiquidGlassContentControl
 				x:Name="PART_LiquidGlassSample"
-				Padding="64"
+				Padding="48"
 				HorizontalAlignment="Center"
 				VerticalAlignment="Center"
 				BackgroundSource="{x:Bind PART_Wallpaper}"
+				BorderThickness="2"
 				CornerRadius="32"
 				Foreground="White"
 				PointerMoved="LiquidGlassContentControl_PointerMoved"
 				PointerPressed="LiquidGlassContentControl_PointerPressed"
 				PointerReleased="LiquidGlassContentControl_PointerReleased"
 				Thickness="16">
-				<TextBlock
-					Foreground="White"
-					Style="{ThemeResource TitleTextBlockStyle}"
-					Text="Liquid Glass" />
+				<StackPanel Spacing="8">
+					<TextBlock
+						HorizontalAlignment="Center"
+						Foreground="White"
+						Style="{ThemeResource TitleTextBlockStyle}"
+						Text="Liquid Glass" />
+					<TextBlock
+						HorizontalAlignment="Center"
+						FontSize="16"
+						Foreground="White"
+						Opacity="0.5"
+						Text="Win2D for WinUI 3" />
+					<TextBlock
+						HorizontalAlignment="Center"
+						FontSize="16"
+						Foreground="White"
+						Opacity="0.5"
+						Text="与君初相识，犹如故人归" />
+				</StackPanel>
 			</controls:LiquidGlassContentControl>
 		</Canvas>
 	</Grid>
