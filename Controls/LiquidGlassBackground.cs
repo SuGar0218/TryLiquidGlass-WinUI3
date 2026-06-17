@@ -262,7 +262,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         r2 = r * r;
         for (int x = width - r; x < width; x++)
         {
-            mapXToYAtTopRight[x] = (int)(r - Math.Sqrt(r2 - Square(x - r)));
+            mapXToYAtTopRight[x] = (int)(r - Math.Sqrt(r2 - Square((width - x) - r)));
         }
         for (int y = 0; y < r; y++)
         {
@@ -273,11 +273,11 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         r2 = r * r;
         for (int x = width - r; x < width; x++)
         {
-            mapXToYAtBottomRight[x] = height - (int)(r - Math.Sqrt(r2 - Square(x - r)));
+            mapXToYAtBottomRight[x] = height - (int)(r - Math.Sqrt(r2 - Square((width - x) - r)));
         }
         for (int y = height - r; y < height; y++)
         {
-            mapYToXAtBottomRight[y] = width - (int)(r - Math.Sqrt(r2 - Square(y - r)));
+            mapYToXAtBottomRight[y] = width - (int)(r - Math.Sqrt(r2 - Square((height - y) - r)));
         }
 
         r = cornerRadius[3];
@@ -288,7 +288,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         }
         for (int y = height - r; y < height; y++)
         {
-            mapYToXAtBottomLeft[y] = (int)(r - Math.Sqrt(r2 - Square(y - r)));
+            mapYToXAtBottomLeft[y] = (int)(r - Math.Sqrt(r2 - Square((height - y) - r)));
         }
 
         Color[] pixels = new Color[width * height];
@@ -306,17 +306,17 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
                     xLeft = mapYToXAtTopLeft[y];
                     yTop = mapXToYAtTopLeft[x];
                 }
-                else if (x > width - cornerRadius[1] && y < cornerRadius[1])  // 右上角
+                else if (x >= width - cornerRadius[1] && y < cornerRadius[1])  // 右上角
                 {
                     xRight = mapYToXAtTopRight[y];
                     yTop = mapXToYAtTopRight[x];
                 }
-                else if (x > width - cornerRadius[2] && y > height - cornerRadius[2])  // 右下角
+                else if (x >= width - cornerRadius[2] && y >= height - cornerRadius[2])  // 右下角
                 {
                     xRight = mapYToXAtBottomRight[y];
                     yBottom = mapXToYAtBottomRight[x];
                 }
-                else if (x < cornerRadius[3] && y > height - cornerRadius[3])  // 左下角
+                else if (x < cornerRadius[3] && y >= height - cornerRadius[3])  // 左下角
                 {
                     xLeft = mapYToXAtBottomLeft[y];
                     yBottom = mapXToYAtBottomLeft[x];
