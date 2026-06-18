@@ -324,8 +324,10 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
                     yBottom = mapXToYAtBottomLeft[x];
                 }
 
-                EllipticDisplacementFunction xDisplacementFunction = new(thickness, xRight - xLeft + 1);
-                EllipticDisplacementFunction yDisplacementFunction = new(thickness, yBottom - yTop + 1);
+                int w = xRight - xLeft + 1;
+                int h = yBottom - yTop + 1;
+                EllipticDisplacementFunction xDisplacementFunction = new(thickness, w, 0.618 * w);
+                EllipticDisplacementFunction yDisplacementFunction = new(thickness, h, 0.618 * h);
 
                 double displacementX = 0;
                 double displacementY = 0;

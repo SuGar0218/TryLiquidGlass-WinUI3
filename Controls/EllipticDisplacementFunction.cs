@@ -4,14 +4,16 @@ namespace TryLiquidGlass.Controls;
 
 public class EllipticDisplacementFunction
 {
-    public EllipticDisplacementFunction(double thickness, double length)  // length >= 2 * thickness
+    public EllipticDisplacementFunction(double thickness, double length, double maxDisplacement)  // length >= 2 * thickness
     {
         t = thickness;
         l = length;
+        m = maxDisplacement;
     }
 
     private readonly double t;
     private readonly double l;
+    private readonly double m;
 
     public double Thickness => t;
     public double Length => l;
@@ -19,7 +21,7 @@ public class EllipticDisplacementFunction
     private double F(double x)
     {
         double a = x / t - 1;
-        return l * (1 - Math.Sqrt(1 - a * a));
+        return m * (1 - Math.Sqrt(1 - a * a));
     }
 
     public double Calculate(double x)
