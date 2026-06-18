@@ -21,7 +21,6 @@
 			Stretch="UniformToFill" />
 		<Canvas>
 			<controls:LiquidGlassContentControl
-				x:Name="PART_LiquidGlassSample"
 				Padding="48"
 				HorizontalAlignment="Center"
 				VerticalAlignment="Center"
@@ -52,6 +51,38 @@
 						Opacity="0.5"
 						Text="与君初相识，犹如故人归" />
 				</StackPanel>
+			</controls:LiquidGlassContentControl>
+
+			<controls:LiquidGlassContentControl
+				Width="64"
+				Height="64"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				BackgroundSource="{x:Bind PART_Wallpaper}"
+				BorderThickness="2"
+				CornerRadius="32"
+				Foreground="White"
+				PointerMoved="LiquidGlassContentControl_PointerMoved"
+				PointerPressed="LiquidGlassContentControl_PointerPressed"
+				PointerReleased="LiquidGlassContentControl_PointerReleased"
+				Thickness="16">
+				<FontIcon FontWeight="SemiBold" Glyph="&#xE721;" />
+			</controls:LiquidGlassContentControl>
+
+			<controls:LiquidGlassContentControl
+				Width="256"
+				Height="64"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				BackgroundSource="{x:Bind PART_Wallpaper}"
+				BorderThickness="2"
+				CornerRadius="32"
+				Foreground="White"
+				PointerMoved="LiquidGlassContentControl_PointerMoved"
+				PointerPressed="LiquidGlassContentControl_PointerPressed"
+				PointerReleased="LiquidGlassContentControl_PointerReleased"
+				Thickness="16">
+				<TextBlock FontSize="16" Text="Lorem ipsum sit amet" />
 			</controls:LiquidGlassContentControl>
 		</Canvas>
 	</Grid>

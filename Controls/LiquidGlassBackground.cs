@@ -4,16 +4,15 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 
+using TryLiquidGlass.Helpers;
+
 using Windows.Foundation;
-using Windows.Graphics.DirectX;
-using Windows.Storage.Streams;
 using Windows.UI;
 
 namespace TryLiquidGlass.Controls;
@@ -67,10 +66,12 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         if (e.OldValue is FrameworkElement oldValue)
         {
             oldValue.SizeChanged -= OnBackgroundSourceSizeChanged;
+            _backdropBitmapSource = null;
         }
         if (e.NewValue is FrameworkElement newValue)
         {
             newValue.SizeChanged += OnBackgroundSourceSizeChanged;
+            _backdropBitmapSource = FrameworkElementCanvasBitmapSourceManager.GetBitmapSourceFor(newValue);
         }
     }
 
@@ -85,7 +86,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     private CanvasRenderTarget? _displacementMap;
     private bool _isDisplacementMapValid;
 
-    private readonly RenderTargetBitmap _backdropRenderTargetBitmap = new();
+    private FrameworkElementCanvasBitmapSource? _backdropBitmapSource;
     private CanvasBitmap? _backdropBitmap;
     private bool _isBackdropBitmapValid;
 
@@ -95,7 +96,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         PART_CanvasControl = GetTemplateChild(nameof(PART_CanvasControl)) as CanvasControl;
         if (PART_CanvasControl is not null)
         {
-            PART_CanvasControl?.Draw += OnDraw;
+            PART_CanvasControl?.Draw += OnCanvasDraw;
         }
     }
 
@@ -147,24 +148,16 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
     private async Task<bool> UpdateBackdropImage()
     {
-        if (!IsLoaded || BackgroundSource is null || PART_CanvasControl is null)
+        if (!IsLoaded || _backdropBitmapSource is null || PART_CanvasControl is null)
             return false;
 
-        await _backdropRenderTargetBitmap.RenderAsync(BackgroundSource);
-        IBuffer pixelBuffer = await _backdropRenderTargetBitmap.GetPixelsAsync();
-        byte[] pixelBytes = new byte[pixelBuffer.Length];
-        using (DataReader dataReader = DataReader.FromBuffer(pixelBuffer))
+        _backdropBitmap = await _backdropBitmapSource.GetAsync(PART_CanvasControl);
+        bool isValid = _backdropBitmap.SizeInPixels.Width > 0 && _backdropBitmap.SizeInPixels.Height > 0;
+        if (!isValid)
         {
-            dataReader.ReadBytes(pixelBytes);
+            _backdropBitmapSource.Invalidate();
         }
-        _backdropBitmap = CanvasBitmap.CreateFromBytes(
-            PART_CanvasControl,
-            pixelBytes,
-            _backdropRenderTargetBitmap!.PixelWidth,
-            _backdropRenderTargetBitmap!.PixelHeight,
-            DirectXPixelFormat.B8G8R8A8UIntNormalized,
-            (float)(XamlRoot.RasterizationScale * 96));
-        return _backdropRenderTargetBitmap.PixelWidth > 0 && _backdropRenderTargetBitmap.PixelHeight > 0;
+        return isValid;
     }
 
     private bool UpdateDisplacementMap()
@@ -191,7 +184,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     private readonly DisplacementMapEffect _displacementMapEffect = new();
     private readonly GaussianBlurEffect _gaussianBlurEffect = new();
 
-    private async void OnDraw(CanvasControl sender, CanvasDrawEventArgs args)
+    private async void OnCanvasDraw(CanvasControl sender, CanvasDrawEventArgs args)
     {
         if (_backdropBitmap is null || _backdropBitmap.Size.Width == 0 && _backdropBitmap.Size.Height == 0)
             return;
