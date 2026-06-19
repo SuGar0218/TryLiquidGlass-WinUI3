@@ -66,12 +66,14 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         if (e.OldValue is FrameworkElement oldValue)
         {
             oldValue.SizeChanged -= OnBackgroundSourceSizeChanged;
+            _backdropBitmapSource?.Invalidated -= OnBackdropBitmapSourceInvalidated;
             _backdropBitmapSource = null;
         }
         if (e.NewValue is FrameworkElement newValue)
         {
             newValue.SizeChanged += OnBackgroundSourceSizeChanged;
             _backdropBitmapSource = FrameworkElementCanvasBitmapSourceManager.GetBitmapSourceFor(newValue);
+            _backdropBitmapSource.Invalidated += OnBackdropBitmapSourceInvalidated;
         }
     }
 
@@ -79,6 +81,12 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     {
         _isBackdropBitmapValid = false;
         await UpdateLiquidGlassAsync();
+    }
+
+    private void OnBackdropBitmapSourceInvalidated(object? sender, EventArgs e)
+    {
+        _isBackdropBitmapValid = false;
+        DispatcherQueue.TryEnqueue(async () => await UpdateLiquidGlassAsync());
     }
 
     private CanvasControl? PART_CanvasControl;
@@ -94,10 +102,7 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
     {
         base.OnApplyTemplate();
         PART_CanvasControl = GetTemplateChild(nameof(PART_CanvasControl)) as CanvasControl;
-        if (PART_CanvasControl is not null)
-        {
-            PART_CanvasControl?.Draw += OnCanvasDraw;
-        }
+        PART_CanvasControl?.Draw += OnCanvasDraw;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)

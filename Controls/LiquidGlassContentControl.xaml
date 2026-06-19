@@ -13,16 +13,12 @@
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="local:LiquidGlassContentControl">
-					<Grid
-						Background="{TemplateBinding Background}"
-						BorderBrush="{TemplateBinding BorderBrush}"
-						BorderThickness="{TemplateBinding BorderThickness}"
-						CornerRadius="{TemplateBinding CornerRadius}">
+					<Grid Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
 						<local:LiquidGlassBackground
 							x:Name="PART_LiquidGlassBackground"
 							BackgroundSource="{TemplateBinding BackgroundSource}"
-							BorderBrush="{x:Null}"
-							BorderThickness="0"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
 							CornerRadius="{TemplateBinding CornerRadius}"
 							Thickness="{TemplateBinding Thickness}" />
 						<ContentPresenter

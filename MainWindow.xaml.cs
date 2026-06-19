@@ -1,8 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
 
-using System.Xml.Linq;
+using System;
+
+using TryLiquidGlass.Helpers;
 
 using Windows.Foundation;
 
@@ -15,10 +19,12 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         AppWindow.TitleBar.PreferredTheme = Microsoft.UI.Windowing.TitleBarTheme.Dark;
         InitializeComponent();
+        _wallpaperBitmapSource = FrameworkElementCanvasBitmapSourceManager.GetBitmapSourceFor(PART_Wallpaper);
     }
 
     private bool _isPointerPressed;
     private Point _previousPosition;
+    private readonly FrameworkElementCanvasBitmapSource _wallpaperBitmapSource;  // Currently, FrameworkElementCanvasBitmapSource serves as the backgroung image provider for Liquid Glass.
 
     private void LiquidGlassContentControl_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -45,5 +51,26 @@ public sealed partial class MainWindow : Window
         UIElement element = (UIElement)sender;
         _isPointerPressed = false;
         element.ReleasePointerCapture(e.Pointer);
+    }
+
+    private async void OnWallpaperDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        FileOpenPicker picker = new(AppWindow.Id)
+        {
+            SuggestedStartLocation = PickerLocationId.PicturesLibrary,
+            FileTypeFilter = { ".png", ".jpg", ".jpeg" }
+        };
+        PickFileResult? result = await picker.PickSingleFileAsync();
+        if (!string.IsNullOrWhiteSpace(result?.Path))
+        {
+            BitmapImage image = new(new Uri(result.Path));
+            image.ImageOpened += OnImageOpened;
+            PART_Wallpaper.Source = image;
+        }
+    }
+
+    private void OnImageOpened(object sender, RoutedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(_wallpaperBitmapSource.Invalidate);
     }
 }

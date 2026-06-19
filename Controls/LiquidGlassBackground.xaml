@@ -6,13 +6,14 @@
 	xmlns:win2d="using:Microsoft.Graphics.Canvas.UI.Xaml">
 
 	<x:Double x:Key="LiquidGlassBorderThickness">1</x:Double>
+	<local:ThicknessNegativeConverter x:Key="ThicknessNegativeConverter" />
 
 	<LinearGradientBrush x:Key="LiquidGlassBorderBrush" MappingMode="RelativeToBoundingBox" StartPoint="0,0" EndPoint="0,1">
 		<LinearGradientBrush.GradientStops>
 			<GradientStopCollection>
 				<GradientStop Offset="0.0" Color="#40FFFFFF" />
-				<GradientStop Offset="0.2" Color="#40000000" />
-				<GradientStop Offset="0.8" Color="#40000000" />
+				<GradientStop Offset="0.2" Color="#20000000" />
+				<GradientStop Offset="0.8" Color="#20000000" />
 				<GradientStop Offset="1.0" Color="#40FFFFFF" />
 			</GradientStopCollection>
 		</LinearGradientBrush.GradientStops>
@@ -30,7 +31,7 @@
 						BorderBrush="{TemplateBinding BorderBrush}"
 						BorderThickness="{TemplateBinding BorderThickness}"
 						CornerRadius="{TemplateBinding CornerRadius}">
-						<win2d:CanvasControl x:Name="PART_CanvasControl" />
+						<win2d:CanvasControl x:Name="PART_CanvasControl" Margin="{Binding BorderThickness, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={StaticResource ThicknessNegativeConverter}}" />
 					</Border>
 				</ControlTemplate>
 			</Setter.Value>

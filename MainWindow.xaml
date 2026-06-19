@@ -10,17 +10,18 @@
 	Title="TryLiquidGlass"
 	mc:Ignorable="d">
 
-	<Window.SystemBackdrop>
-		<MicaBackdrop />
-	</Window.SystemBackdrop>
-
 	<Grid x:Name="PART_RootGrid">
 		<Image
 			x:Name="PART_Wallpaper"
+			DoubleTapped="OnWallpaperDoubleTapped"
+			ImageOpened="OnImageOpened"
+			IsDoubleTapEnabled="True"
 			Source="/Assets/OS 26 Liquid Glass Sample.jpg"
 			Stretch="UniformToFill" />
 		<Canvas>
 			<controls:LiquidGlassContentControl
+				Canvas.Left="30"
+				Canvas.Top="30"
 				Padding="48"
 				HorizontalAlignment="Center"
 				VerticalAlignment="Center"
@@ -31,7 +32,7 @@
 				PointerMoved="LiquidGlassContentControl_PointerMoved"
 				PointerPressed="LiquidGlassContentControl_PointerPressed"
 				PointerReleased="LiquidGlassContentControl_PointerReleased"
-				Thickness="16">
+				Thickness="8">
 				<StackPanel Spacing="8">
 					<TextBlock
 						HorizontalAlignment="Center"
@@ -54,22 +55,8 @@
 			</controls:LiquidGlassContentControl>
 
 			<controls:LiquidGlassContentControl
-				Width="64"
-				Height="64"
-				HorizontalAlignment="Center"
-				VerticalAlignment="Center"
-				BackgroundSource="{x:Bind PART_Wallpaper}"
-				BorderThickness="2"
-				CornerRadius="32"
-				Foreground="White"
-				PointerMoved="LiquidGlassContentControl_PointerMoved"
-				PointerPressed="LiquidGlassContentControl_PointerPressed"
-				PointerReleased="LiquidGlassContentControl_PointerReleased"
-				Thickness="16">
-				<FontIcon FontWeight="SemiBold" Glyph="&#xE721;" />
-			</controls:LiquidGlassContentControl>
-
-			<controls:LiquidGlassContentControl
+				Canvas.Left="320"
+				Canvas.Top="30"
 				Width="256"
 				Height="64"
 				HorizontalAlignment="Center"
@@ -83,6 +70,24 @@
 				PointerReleased="LiquidGlassContentControl_PointerReleased"
 				Thickness="16">
 				<TextBlock FontSize="16" Text="Lorem ipsum sit amet" />
+			</controls:LiquidGlassContentControl>
+
+			<controls:LiquidGlassContentControl
+				Canvas.Left="640"
+				Canvas.Top="30"
+				Width="64"
+				Height="64"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				BackgroundSource="{x:Bind PART_Wallpaper}"
+				BorderThickness="2"
+				CornerRadius="32"
+				Foreground="White"
+				PointerMoved="LiquidGlassContentControl_PointerMoved"
+				PointerPressed="LiquidGlassContentControl_PointerPressed"
+				PointerReleased="LiquidGlassContentControl_PointerReleased"
+				Thickness="16">
+				<FontIcon FontWeight="SemiBold" Glyph="&#xE721;" />
 			</controls:LiquidGlassContentControl>
 		</Canvas>
 	</Grid>
