@@ -21,7 +21,8 @@ public class EllipticDisplacementFunction
     private double F(double x)
     {
         double a = x / t - 1;
-        return m * (1 - Math.Sqrt(1 - a * a));
+        double displacedX = m - (m - t) * Math.Sqrt(1 - a * a);
+        return displacedX - x;
     }
 
     public double Calculate(double x)
