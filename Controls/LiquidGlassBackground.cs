@@ -233,110 +233,19 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
         using CanvasDrawingSession drawingSession = args.DrawingSession;
         drawingSession.DrawImage(_gaussianBlurEffect);
+        //drawingSession.DrawImage(_displacementMap);
     }
 
     private static Color[] BuildDisplacementPixels(int width, int height, int thickness, int[] cornerRadius)
     {
-        int r, r2;
-        Dictionary<int, int> mapXToYAtTopLeft = new(cornerRadius[0]);
-        Dictionary<int, int> mapYToXAtTopLeft = new(cornerRadius[0]);
-        Dictionary<int, int> mapXToYAtTopRight = new(cornerRadius[1]);
-        Dictionary<int, int> mapYToXAtTopRight = new(cornerRadius[1]);
-        Dictionary<int, int> mapXToYAtBottomRight = new(cornerRadius[2]);
-        Dictionary<int, int> mapYToXAtBottomRight = new(cornerRadius[2]);
-        Dictionary<int, int> mapXToYAtBottomLeft = new(cornerRadius[3]);
-        Dictionary<int, int> mapYToXAtBottomLeft = new(cornerRadius[3]);
-
-        r = cornerRadius[0];
-        r2 = r * r;
-        for (int x = 0; x < r; x++)
-        {
-            mapXToYAtTopLeft[x] = (int)(r - Math.Sqrt(r2 - Square(x - r)));
-        }
-        for (int y = 0; y < r; y++)
-        {
-            mapYToXAtTopLeft[y] = (int)(r - Math.Sqrt(r2 - Square(y - r)));
-        }
-
-        r = cornerRadius[1];
-        r2 = r * r;
-        for (int x = width - r; x < width; x++)
-        {
-            mapXToYAtTopRight[x] = (int)(r - Math.Sqrt(r2 - Square((width - x) - r)));
-        }
-        for (int y = 0; y < r; y++)
-        {
-            mapYToXAtTopRight[y] = width - (int)(r - Math.Sqrt(r2 - Square(y - r)));
-        }
-
-        r = cornerRadius[2];
-        r2 = r * r;
-        for (int x = width - r; x < width; x++)
-        {
-            mapXToYAtBottomRight[x] = height - (int)(r - Math.Sqrt(r2 - Square((width - x) - r)));
-        }
-        for (int y = height - r; y < height; y++)
-        {
-            mapYToXAtBottomRight[y] = width - (int)(r - Math.Sqrt(r2 - Square((height - y) - r)));
-        }
-
-        r = cornerRadius[3];
-        r2 = r * r;
-        for (int x = 0; x < r; x++)
-        {
-            mapXToYAtBottomLeft[x] = height - (int)(r - Math.Sqrt(r2 - Square(x - r)));
-        }
-        for (int y = height - r; y < height; y++)
-        {
-            mapYToXAtBottomLeft[y] = (int)(r - Math.Sqrt(r2 - Square((height - y) - r)));
-        }
-
+        DisplacementDistanceFunction displacementDistanceFunction = new(thickness, Math.Min(8 * thickness, Math.Min(width, height)));
+        RoundedCornerRectangleDisplacementFunction displacementFunction = new(displacementDistanceFunction, width, height, [cornerRadius[0], cornerRadius[1], cornerRadius[2], cornerRadius[3]]);
         Color[] pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                int xLeft = 0;
-                int xRight = width - 1;
-                int yTop = 0;
-                int yBottom = height - 1;
-
-                if (x < cornerRadius[0] && y < cornerRadius[0])  // 左上角
-                {
-                    xLeft = mapYToXAtTopLeft[y];
-                    yTop = mapXToYAtTopLeft[x];
-                }
-                else if (x >= width - cornerRadius[1] && y < cornerRadius[1])  // 右上角
-                {
-                    xRight = mapYToXAtTopRight[y];
-                    yTop = mapXToYAtTopRight[x];
-                }
-                else if (x >= width - cornerRadius[2] && y >= height - cornerRadius[2])  // 右下角
-                {
-                    xRight = mapYToXAtBottomRight[y];
-                    yBottom = mapXToYAtBottomRight[x];
-                }
-                else if (x < cornerRadius[3] && y >= height - cornerRadius[3])  // 左下角
-                {
-                    xLeft = mapYToXAtBottomLeft[y];
-                    yBottom = mapXToYAtBottomLeft[x];
-                }
-
-                int w = xRight - xLeft + 1;
-                int h = yBottom - yTop + 1;
-                EllipticDisplacementFunction xDisplacementFunction = new(thickness, w, 0.618 * w);
-                EllipticDisplacementFunction yDisplacementFunction = new(thickness, h, 0.618 * h);
-
-                double displacementX = 0;
-                double displacementY = 0;
-                if ((xLeft <= x && x <= xLeft + thickness) || (xRight - thickness <= x && x <= xRight))
-                {
-                    displacementX = xDisplacementFunction.Calculate(x - xLeft);
-                }
-                if ((yTop <= y && y <= yTop + thickness) || (yBottom - thickness <= y && y <= yBottom))
-                {
-                    displacementY = yDisplacementFunction.Calculate(y - yTop);
-                }
+                (double displacementX, double displacementY) = displacementFunction.Calculate(x, y);
                 pixels[y * width + x] = Color.FromArgb(
                     byte.MaxValue,
                     (byte)(128 + byte.MaxValue * displacementX / width / 2),
@@ -346,8 +255,6 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
         }
         return pixels;
     }
-
-    private static int Square(int x) => x * x;
 
     #region IDisposable
 

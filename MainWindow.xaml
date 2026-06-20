@@ -32,7 +32,7 @@
 				PointerMoved="LiquidGlassContentControl_PointerMoved"
 				PointerPressed="LiquidGlassContentControl_PointerPressed"
 				PointerReleased="LiquidGlassContentControl_PointerReleased"
-				Thickness="8">
+				Thickness="16">
 				<StackPanel Spacing="8">
 					<TextBlock
 						HorizontalAlignment="Center"
