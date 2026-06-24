@@ -233,12 +233,12 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
 
         using CanvasDrawingSession drawingSession = args.DrawingSession;
         drawingSession.DrawImage(_gaussianBlurEffect);
-        //drawingSession.DrawImage(_displacementMap);
     }
 
     private static Color[] BuildDisplacementPixels(int width, int height, int thickness, int[] cornerRadius)
     {
-        DisplacementDistanceFunction displacementDistanceFunction = new(thickness, Math.Min(8 * thickness, Math.Min(width, height)));
+        int maxDisplacement = Math.Min(width, height);
+        DisplacementDistanceFunction displacementDistanceFunction = new(thickness, maxDisplacement);
         RoundedCornerRectangleDisplacementFunction displacementFunction = new(displacementDistanceFunction, width, height, [cornerRadius[0], cornerRadius[1], cornerRadius[2], cornerRadius[3]]);
         Color[] pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
@@ -248,8 +248,8 @@ public sealed partial class LiquidGlassBackground : Control, IDisposable
                 (double displacementX, double displacementY) = displacementFunction.Calculate(x, y);
                 pixels[y * width + x] = Color.FromArgb(
                     byte.MaxValue,
-                    (byte)(128 + byte.MaxValue * displacementX / width / 2),
-                    (byte)(128 + byte.MaxValue * displacementY / height / 2),
+                    (byte)(128 + byte.MaxValue * displacementX / maxDisplacement / 2),
+                    (byte)(128 + byte.MaxValue * displacementY / maxDisplacement / 2),
                     128);
             }
         }

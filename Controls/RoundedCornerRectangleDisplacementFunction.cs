@@ -26,9 +26,9 @@ public class RoundedCornerRectangleDisplacementFunction
     private readonly double _height;
     private readonly double[] _cornerRadius;
 
-    private (double, double) DisplaceAtTopLeftCorner(double x, double y)  // 0 <= x <= r && 0 <= y <= r
+    private (double, double) DisplaceAtTopLeftCorner(double x, double y, double cornerRadius)  // 0 <= x <= r && 0 <= y <= r
     {
-        double r = _cornerRadius[0];
+        double r = cornerRadius;
 #if DEBUG
         if (x < 0 || x > r || y < 0 || y > r)
             throw new ArgumentOutOfRangeException("0 <= x <= r && 0 <= y <= r");
@@ -41,15 +41,15 @@ public class RoundedCornerRectangleDisplacementFunction
         return (k * (x - r), k * (y - r));
     }
 
-    private (double, double) DisplaceAtTopLeftQuarter(double x, double y)
+    private (double, double) DisplaceAtTopLeftQuarter(double x, double y, double cornerRadius)
     {
-        double r = _cornerRadius[0];
+        double r = cornerRadius;
 #if DEBUG
         if (x < 0 || x > _width / 2 || y < 0 || y > _height / 2)
             throw new ArgumentOutOfRangeException("0 <= x <= halfWidth && 0 <= y <= halfHeight");
 #endif
         if (x <= r && y <= r)
-            return DisplaceAtTopLeftCorner(x, y);
+            return DisplaceAtTopLeftCorner(x, y, r);
 
         if (x < y)
             return (_displacementDistanceFunction.Calculate(x) - x, 0);
@@ -71,11 +71,11 @@ public class RoundedCornerRectangleDisplacementFunction
         {
             if (y < halfHeight)  // top-left quarter
             {
-                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(x, y);
+                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(x, y, _cornerRadius[0]);
             }
             else  // bottom-left quarter
             {
-                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(x, _height - y);
+                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(x, _height - y, _cornerRadius[3]);
                 displaceY = -displaceY;
             }
         }
@@ -83,12 +83,12 @@ public class RoundedCornerRectangleDisplacementFunction
         {
             if (y < halfHeight) // top-right quarter
             {
-                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(_width - x, y);
+                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(_width - x, y, _cornerRadius[1]);
                 displaceX = -displaceX;
             }
             else  // bottom-right quarter
             {
-                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(_width - x, _height - y);
+                (displaceX, displaceY) = DisplaceAtTopLeftQuarter(_width - x, _height - y, _cornerRadius[2]);
                 displaceX = -displaceX;
                 displaceY = -displaceY;
             }
